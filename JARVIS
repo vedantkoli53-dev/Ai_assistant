@@ -1,0 +1,331 @@
+import speech_recognition as sr
+import pyttsx3
+import webbrowser
+import subprocess
+import datetime
+import urllib.parse
+import os
+
+
+# ==============================
+# JARVIS VOICE ENGINE
+# ==============================
+
+engine = pyttsx3.init()
+
+engine.setProperty("rate", 170)
+engine.setProperty("volume", 1.0)
+
+
+def speak(text):
+    print("JARVIS:", text)
+    engine.say(text)
+    engine.runAndWait()
+
+
+# ==============================
+# MICROPHONE
+# ==============================
+
+recognizer = sr.Recognizer()
+
+
+def listen():
+
+    with sr.Microphone() as source:
+
+        print("\nListening...")
+
+        recognizer.adjust_for_ambient_noise(source, duration=0.5)
+
+        try:
+
+            audio = recognizer.listen(
+                source,
+                timeout=5,
+                phrase_time_limit=8
+            )
+
+            print("Recognizing...")
+
+            command = recognizer.recognize_google(
+                audio,
+                language="en-IN"
+            )
+
+            print("YOU:", command)
+
+            return command.lower()
+
+        except sr.WaitTimeoutError:
+
+            print("No speech detected.")
+            return ""
+
+        except sr.UnknownValueError:
+
+            speak("Sorry, I didn't understand you.")
+            return ""
+
+        except sr.RequestError:
+
+            speak("Speech recognition service is unavailable.")
+            return ""
+
+
+# ==============================
+# OPEN GOOGLE
+# ==============================
+
+def open_google():
+
+    speak("Opening Google.")
+
+    webbrowser.open("https://www.google.com")
+
+
+# ==============================
+# OPEN YOUTUBE
+# ==============================
+
+def open_youtube():
+
+    speak("Opening YouTube.")
+
+    webbrowser.open("https://www.youtube.com")
+
+
+# ==============================
+# OPEN CHROME
+# ==============================
+
+def open_chrome():
+
+    speak("Opening Chrome.")
+
+    chrome_paths = [
+        r"C:\Program Files\Google\Chrome\Application\chrome.exe",
+        r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
+        os.path.expandvars(
+            r"%LOCALAPPDATA%\Google\Chrome\Application\chrome.exe"
+        )
+    ]
+
+    for path in chrome_paths:
+
+        if os.path.exists(path):
+
+            subprocess.Popen(path)
+
+            return
+
+    speak("I could not find Google Chrome.")
+
+
+# ==============================
+# SEARCH GOOGLE
+# ==============================
+
+def search_google(query):
+
+    if query:
+
+        speak("Searching for " + query)
+
+        url = (
+            "https://www.google.com/search?q="
+            + urllib.parse.quote(query)
+        )
+
+        webbrowser.open(url)
+
+    else:
+
+        speak("What should I search for?")
+
+
+# ==============================
+# ARTIFICIAL INTELLIGENCE
+# ==============================
+
+def explain_ai():
+
+    speak(
+        "Artificial intelligence is a technology that allows "
+        "computers to perform tasks that normally require "
+        "human intelligence, such as learning, reasoning, "
+        "problem solving and understanding language."
+    )
+
+
+# ==============================
+# TIME
+# ==============================
+
+def tell_time():
+
+    current_time = datetime.datetime.now().strftime("%I:%M %p")
+
+    speak("The current time is " + current_time)
+
+
+# ==============================
+# PLAY MUSIC
+# ==============================
+
+def play_music():
+
+    speak("Opening YouTube Music.")
+
+    webbrowser.open("https://music.youtube.com")
+
+
+# ==============================
+# CALCULATOR
+# ==============================
+
+def open_calculator():
+
+    speak("Opening Calculator.")
+
+    subprocess.Popen("calc.exe")
+
+
+# ==============================
+# NOTEPAD
+# ==============================
+
+def open_notepad():
+
+    speak("Opening Notepad.")
+
+    subprocess.Popen("notepad.exe")
+
+
+# ==============================
+# PROCESS COMMAND
+# ==============================
+
+def process_command(command):
+
+    # Open Google
+    if "open google" in command:
+
+        open_google()
+
+
+    # Open YouTube
+    elif "open youtube" in command:
+
+        open_youtube()
+
+
+    # Open Chrome
+    elif "open chrome" in command:
+
+        open_chrome()
+
+
+    # Search
+    elif "search for" in command:
+
+        query = command.replace("search for", "").strip()
+
+        search_google(query)
+
+
+    elif command.startswith("search "):
+
+        query = command.replace("search", "", 1).strip()
+
+        search_google(query)
+
+
+    # Artificial Intelligence
+    elif (
+        "what is artificial intelligence" in command
+        or "what is ai" in command
+    ):
+
+        explain_ai()
+
+
+    # Time
+    elif (
+        "tell me the time" in command
+        or "what is the time" in command
+        or "what time is it" in command
+    ):
+
+        tell_time()
+
+
+    # Music
+    elif "play music" in command:
+
+        play_music()
+
+
+    # Calculator
+    elif "open calculator" in command:
+
+        open_calculator()
+
+
+    # Notepad
+    elif "open notepad" in command:
+
+        open_notepad()
+
+
+    # Exit
+    elif (
+        "exit assistant" in command
+        or "exit jarvis" in command
+        or "quit assistant" in command
+        or "quit jarvis" in command
+        or command == "exit"
+        or command == "quit"
+    ):
+
+        speak("Goodbye. Shutting down JARVIS.")
+
+        return True
+
+
+    # Unknown
+    else:
+
+        speak("I don't know that command yet.")
+
+    return False
+
+
+# ==============================
+# START JARVIS
+# ==============================
+
+def main():
+
+    print("=" * 50)
+    print("             JARVIS")
+    print("=" * 50)
+
+    speak("Hello. I am Jarvis. How can I help you?")
+
+    while True:
+
+        command = listen()
+
+        if process_command(command):
+
+            break
+
+
+# ==============================
+# RUN PROGRAM
+# ==============================
+
+if __name__ == "__main__":
+
+    main()
